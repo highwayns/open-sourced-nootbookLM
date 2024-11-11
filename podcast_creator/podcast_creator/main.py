@@ -21,6 +21,7 @@ load_dotenv()
 
 def create_podcast_from_pdf(
     pdf_path,
+    language,
     output_audio_file="podcast_output.mp3",
     output_video_file="output_video_with_audio.mp4",
 ):
@@ -53,7 +54,7 @@ def create_podcast_from_pdf(
 
     # Define the prompt template
     template = """
-    You are an expert podcast script writer responsible for creating an extended, highly detailed, and thorough script for a podcast episode titled “Vox AI News.” This podcast features two hosts, Alice and John, who will engage in an in-depth, conversational dialogue while covering the content provided.
+    You are an expert podcast script writer responsible for creating an extended, highly detailed, and thorough script for a podcast episode titled “Vox AI News.” This podcast features two hosts, Alice and John, who will engage in an in-depth, conversational dialogue while covering the content provided in {language}.
 
     Your task is to write a very long, highly detailed script where Alice and John:
 
@@ -82,9 +83,9 @@ def create_podcast_from_pdf(
     prompt = ChatPromptTemplate.from_template(template)
 
     # Function to generate the podcast script and save it to a JSON file
-    def generate_and_save_podcast_script(content, output_file="podcast_script.json"):
+    def generate_and_save_podcast_script(language, content, output_file="podcast_script.json"):
         messages = prompt.format_messages(
-            content=content, format_instructions=parser.get_format_instructions()
+            language=language, content=content, format_instructions=parser.get_format_instructions()
         )
 
         response = chat(messages)
@@ -103,7 +104,7 @@ def create_podcast_from_pdf(
             print(f"Error parsing output: {e}")
             return response.content
 
-    podcast_script = generate_and_save_podcast_script(content)
+    podcast_script = generate_and_save_podcast_script(language, content)
 
     # If you want to print the script as well
     print(json.dumps(podcast_script, indent=2))
@@ -288,6 +289,22 @@ def create_podcast_from_pdf(
 
 
 # Example usage
+pdf_directory = "../pdf/databricks"
 if __name__ == "__main__":
-    pdf_path = "./pdf/attention.pdf"
-    create_podcast_from_pdf(pdf_path)
+    for filename in os.listdir(pdf_directory):
+        # 检查文件是否为PDF文件
+        if filename.endswith(".pdf"):
+            pdf_path = os.path.join(pdf_directory, filename)
+            base = os.path.splitext(pdf_path)[0]
+            #language = "English"
+            #mp3_path = f"{base}.mp3"
+            #mp4_path = f"{base}.mp4"
+            #create_podcast_from_pdf(pdf_path,language, mp3_path, mp4_path)
+            language = "Japanese"
+            mp3_path = f"{base}_jp.mp3"
+            mp4_path = f"{base}_jp.mp4"
+            create_podcast_from_pdf(pdf_path,language, mp3_path, mp4_path)
+            language = "Chinese"
+            mp3_path = f"{base}_cn.mp3"
+            mp4_path = f"{base}_cn.mp4"
+            create_podcast_from_pdf(pdf_path,language, mp3_path, mp4_path)
